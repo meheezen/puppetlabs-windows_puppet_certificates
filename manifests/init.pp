@@ -57,8 +57,8 @@ class windows_puppet_certificates(
     # Add the client certificate (with private key) to the Personal certificates
     windows_puppet_certificates::windows_certificate { 'puppet_client_windows_certificate':
       ensure    => $ensure,
-      cert_path => "${confdir_path}/ssl/certs/${facts['clientcert']}.pem",
-      key_path  => "${confdir_path}/ssl/private_keys/${facts['clientcert']}.pem",
+      cert_path => "${confdir_path}/ssl/certs/${facts['dns_fqdn']}.pem",
+      key_path  => "${confdir_path}/ssl/private_keys/${facts['dns_fqdn']}.pem",
       cert_type => 'personal',
     }
   }
