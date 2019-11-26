@@ -40,3 +40,5 @@ if ($found) {
   Write-Verbose "Certificate is missing"
   exit 0
 }
+
+

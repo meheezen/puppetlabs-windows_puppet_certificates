@@ -280,3 +280,5 @@ $cert_store.Close | Out-Null
 
 Write-Verbose "Certificate added"
 exit 0
+
+
