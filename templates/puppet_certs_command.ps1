@@ -6,18 +6,19 @@ $VerbosePreference = 'Continue'
 $ErrorActionPreference = 'Stop'
 
 ## check given paths
-if (-not (Test-Path -Path $key_path)) {
+if (-not (Test-Path -Path $key_path) -and ($cert_type -eq 'personal')) {
     Write-Verbose "Certificate $key_path does not exist";
     exit 1;
-} 
+}
 if (-not (Test-Path -Path $cert_path)) {
     Write-Verbose "Certificate $cert_path does not exist";
     exit 1;
-} 
+}
 
 ## PEM KEY -> KEY
-if (-not (Test-Path -Path "$key_path.key")) {
-    openssl rsa -in $key_path -out "$key_path.key";
+if ($cert_type -eq 'trusted_root_ca') {
+} elseif (-not (Test-Path -Path "$key_path.key")) {
+    Invoke-Expression openssl rsa -in $key_path -out "$key_path.key";
     if (-not $?) {
         Write-Verbose "Private key extracted from pem file and stored in $key_path.key"
     } else {
@@ -30,19 +31,18 @@ if (-not (Test-Path -Path "$key_path.key")) {
 
 ## PEM CERT + KEY -> PFX
 if (-not (Test-Path -Path "$cert_path.pfx")) {
-    openssl pkcs12 -export -out "$cert_path.pfx" -inkey "$key_path.key" -in $cert_path -passout pass:;
-    if (-not $?) {
-        Write-Verbose "Pfx file created with private key and stored in $cert_path.pfx"
+    if ($cert_type -eq 'personal') {
+        Invoke-Expression "openssl pkcs12 -export -out ""$($cert_path).pfx"" -inkey ""$($key_path).key"" -in $cert_path -passout pass:;"
     } else {
-        Write-Verbose "Failed to create pfx file";
-        exit 1;
+        Invoke-Expression "openssl pkcs12 -export -out ""$($cert_path).pfx"" -nokeys -in $cert_path -passout pass:;"
     }
 } else {
-    Write-Verbose "Pfx file $cert_path.pfx already exists"
+    Write-Verbose "Pfx file $cert_path.pfx already exists or cannot be created"
 }
 
+
 $pfx = new-object System.Security.Cryptography.X509Certificates.X509Certificate2;
-$pfx.import( "$cert_path.pfx" );
+$pfx.import( "$($cert_path).pfx" );
 $cert_thumbprint = $pfx.Thumbprint.ToUpper();
 Write-Verbose "Certificate thumbprint is $cert_thumbprint";
 
